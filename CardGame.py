@@ -68,6 +68,28 @@ To do:
     戰術卡 加強能力/資源
     情報卡
 '''
+"""
+Comments @ 21:15 HKT 19 Nov
+1.For the round actions, you can make them into more specific functions. For example:
+instead of if (card.pos == (x,y)), you can try
+def findCardAtPos(x,y,playerCards): (or a tuple)
+	card = None
+	cardList = [c for c in playerCards if c.pos == (x,y)]
+	if cardList:
+		card = cardList[0]
+	return card
+
+2. You can try using dicts for decks. It is simple to use like lists:
+{ "sunny dog" : 10 , "ice" : 5, "big cum" : 1 }
+
+3. You can also try to make players into objects, each player have the following attributes/methods:
+deck: their current deck
+handcard (better call it "hand"): their current hand
+playerType: AI or player, which makes it more flexible
+
+4. See below; concerning [x for x in (enumerator)]
+"""
+
 class MainGame(Frame):
     def __init__(self, parent): 
         Frame.__init__(self, parent)  
@@ -208,6 +230,15 @@ class MainGame(Frame):
                     if (x, y) in battle.pos((x1, y1)):
                         card.pos = x, y
                         card.moves -= 1
+		    else:
+			#Attacking
+			#finding the enemy card(s) that can be attacked at (x,y)
+			#Just to note, you can use a = [x for x in (some iterator) (criteria - optional)]
+			#to extract members from a iterator with some criteria
+			enemyCards = [c for c in battle.blue_card if c.pos == (x,y)]
+			#check if list is empty. Empty list evalutes to "False"
+			if enemyCards:
+				battle.attack(card,enemyCard[0])
         self.update()
 
     def Object_pos(self, pos):
