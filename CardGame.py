@@ -149,7 +149,9 @@ class MainGame(Frame):
             for i, button in enumerate(self.buttons):
                 if i < len(red_handcard):
                     card = battle.card_find(red_handcard[i])
-                    button.config(image = battle.pics[card.pic], compound = 'top')
+                    button.config(image = battle.pics[card.pic], compound = 'top')               
+                else:
+                    button.config(image = self.pic_none, compound = 'top')
                 
     def cards_show(self, name):
         card = battle.card_find(name)
