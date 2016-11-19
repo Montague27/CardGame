@@ -6,6 +6,8 @@ Game = 'CardGame'
 Version = '0.01'
 Author = 'ChuShu'
 
+length , width = 7, 3
+
 '''
 進度表:
 
@@ -22,8 +24,7 @@ Author = 'ChuShu'
         主師 未完成
         
         坦克 未完成
-        
-    主力
+            主力
         TD 未完成
             直行攻擊       
         SPG 未完成
@@ -64,11 +65,15 @@ class MainGame(Frame):
         self.parent.title('Python')
         self.pack(fill = BOTH, expand = 1)
         self.canvas = Canvas(self)
+
+
         self.ObjectID = 0
+        
         for y in range(width):
             for x in range(length):
                 xy = x, y
                 self.canvas.create_rectangle(self.xy(xy), outline = '#000000', fill = '#CDCDCD', tags = 'grids')
+
         self.canvas.pack(fill = BOTH, expand = YES)
         self.canvas.tag_bind('grids', '<ButtonPress-1>', self.Object_click)
         self.canvas.tag_bind('grids', '<ButtonPress-3>', self.Object_rightclick)
@@ -83,7 +88,7 @@ class MainGame(Frame):
         self.button5 = Button(self, width = w, height = h, text = '', command = lambda: self.set_card(4))
         self.button6 = Button(self, width = w, height = h, text = '', command = lambda: self.set_card(5))
         self.button7 = Button(self, width = w, height = h, text = '', command = lambda: self.set_card(6))
-        self.turn_end = Button(self, width = 12, height = 5, text = '結束回合')
+        self.turn_end = Button(self, width = 12, height = 5, text = '結束回合', command = None)
         self.turn_end.place(x = 350, y = 250)
 
         x1 = -60
@@ -97,7 +102,7 @@ class MainGame(Frame):
         pos = main.ObjectID 
         side = 'red'
 
-        xy = pos - pos // 7 * 7, pos // 7
+        xy = self.Object_pos(pos)
         for card in battle.red_card:
             if card.pos == xy:
                 return None
@@ -122,13 +127,12 @@ class MainGame(Frame):
             button['text'] = '---'
             button['state'] = 'disable'
             
-        if red_handcard:
-            for card, button in zip(red_handcard, self.buttons):
-                if card is not None:
-                    card_info = self.cards_show(card)
-                    button['text'] = card_info
-                    if battle.red_cost >= battle.card_find(card).cost:
-                        button['state'] = 'normal'
+        for card, button in zip(red_handcard, self.buttons):
+            if card is not None:
+                card_info = self.cards_show(card)
+                button['text'] = card_info
+                if battle.red_cost >= battle.card_find(card).cost:
+                    button['state'] = 'normal'
                     
         for card in blue_card:
             xy = self.Object_xy(card.pos) + 1
@@ -140,14 +144,18 @@ class MainGame(Frame):
                 for button in self.buttons:
                     button['state'] = 'disable'
 
-        self.photo = PhotoImage(file= 'p.png')
-        self.photo_none = PhotoImage(file= 'None.png')
-        
-        for i, button in enumerate(self.buttons):
-            if i < len(red_handcard):
-                button.config(image = self.photo, compound = 'top')
-            else:
-                button.config(image = self.photo_none, compound = 'top')
+        self.pic_none = PhotoImage(file = 'None.png')
+        if red_handcard:
+            for i, button in enumerate(self.buttons):
+                if i < len(red_handcard):
+                    card = battle.card_find(red_handcard[i])
+                    if card.pic is not None:
+                        print(card.pic)
+                        button.config(image = battle.pics[card.pic], compound = 'top')
+                    else:
+                        button.config(image = self.pic_none, compound = 'top')                    
+                else:
+                    button.config(image = self.pic_none, compound = 'top')
                 
     def cards_show(self, name):
         card = battle.card_find(name)
@@ -212,16 +220,15 @@ class MainGame(Frame):
         return [x1, y1, x2, y2]
         
 class card(object):
-    def __init__(self, name, card_type, cost, atk, hp, moves, atks, *leader):
+    def __init__(self, name, card_type, pic, cost, atk, hp, moves, atks, *leader):
         self.name = name
         self.card_type = card_type
+        self.pic = pic
         self.cost = cost
         self.atk = atk
         self.hp = hp
         self.moves = moves
         self.atks = atks
-        
-length , width = 7, 3
 
 deck1 = ['冰','晴天狗', '晴天狗', '晴天狗','驅逐坦克ZEN', '重坦克碧琴型', '重坦克碧琴型', '自走炮碧琴型', '自走炮碧琴型']
 
@@ -235,28 +242,27 @@ deck2 = ['大麻', '晴天狗', '晴天狗', '晴天狗', '晴天狗',
 
 cards_type = ['leader', 'tank', 'TD', 'spg', 'dog']
 cards = [#card('卡名', '卡類', 費用, 攻擊,血量, 移動力, 攻擊次)
-         card('冰', 'leader', 1, 1, 1, None, None),
-         card('大麻', 'leader', 1, 1, 1, None, None),
-         card('ZEN', 'leader', 1, 1, 1, None, None),
+         card('冰', 'leader', None, 1, 1, 1, None, None),
+         card('大麻', 'leader', None, 1, 1, 1, None, None),
+         card('ZEN', 'leader', None, 1, 1, 1, None, None),
 
-         card('補給兵', 'support', 2, 1, 3, None, None),
+         card('補給兵', 'support', None, 2, 1, 3, None, None),
+         card('油田', 'support', None, 3, 2, 3, None, None),
+         card('雷達', 'support', None, 3, 2, 3, None, None),
+
+         card('晴天狗', 'dog', '28.gif', 1, 1, 2, 1, 1),
+         card('流氓犬', 'dog', '28.gif', 2, 2, 4, 1, 1),
+
+         card('自走炮松溪型', 'spg', 'SPG.png', 4, 5, 2, 1, 1),
+         card('自走炮碧琴型', 'spg', 'SPG.png', 3, 3, 1, 1, 1),
          
-         card('油田', 'support', 3, 2, 3, None, None),
-         card('雷達', 'support', 3, 2, 3, None, None),
-
-         card('晴天狗', 'dog', 1, 1, 2, 1, 1),
-         card('流氓犬', 'dog', 2, 2, 4, 1, 1),
-
-         card('自走炮松溪型', 'spg', 4, 5, 2, 1, 1),
-         card('自走炮碧琴型', 'spg', 3, 3, 1, 1, 1),
+         card('驅逐坦克ZEN', 'TD', None, 6, 6, 2, 1, 1),
          
-         card('驅逐坦克ZEN', 'TD', 6, 6, 2, 1, 1),
-         
-         card('重坦克松溪型', 'tank', 5, 4, 4, 1, 1),
-         card('重坦克碧琴型', 'tank', 5, 4, 3, 1, 1),
+         card('重坦克松溪型', 'tank', 'Tank1.png', 5, 4, 4, 1, 1),
+         card('重坦克碧琴型', 'tank', 'Tank1.png', 5, 4, 3, 1, 1),
 
-         card('中坦克甲型', 'tank', 3, 2, 3, 1, 1),
-         card('中坦克乙型', 'tank', 3, 2, 3, 1, 1),]
+         card('中坦克甲型', 'tank', None, 3, 2, 3, 1, 1),
+         card('中坦克乙型', 'tank', None, 3, 2, 3, 1, 1),]
 
 
 class combat(object):
@@ -278,6 +284,8 @@ class combat(object):
         self.blue_handcard = []
         self.blue_cost = 0
 
+        self.pics = self.set_pics()
+        
     def attack(self, atk_card, def_card):
         atk_damage = atk_card.atk
         def_card.hp -= atk_damage
@@ -361,9 +369,6 @@ class combat(object):
                             dirt_new.remove(nearby)
         return dirt_new
     
-    def move(self, pos, new_pos):
-        pass
-
     def card_in_class(self, deck):
         cards = []
         for name in deck:
@@ -383,12 +388,18 @@ class combat(object):
         battle.blue_cost += 5
         self.dealt()
 
-        
+    def set_pics(self):
+        pics = {}
+        for card in cards:
+            if card.pic:
+                pic = PhotoImage(file = card.pic)
+                pics[card.pic] = pic
+        return pics
+    
 root = Tk()
 root.geometry('850x650+0+0')
 main = MainGame(root)
 battle = combat()
-main.update()
 
 battle.set_card(battle.deck_red[0], (0, 1), 'red', leader=True)
 battle.set_card(battle.deck_blue[0], (6, 1), 'blue', leader=True)
@@ -396,5 +407,3 @@ battle.dealt()
 battle.red_cost = 5
 battle.blue_cost = 5
 main.turn_end['command'] = battle.turn_end
-
-
