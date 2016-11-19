@@ -40,23 +40,15 @@ length , width = 7, 3
     發配卡牌 完成
     移動功能 完成
     計cost 完成
-    攻擊功能 未完成 <<< To do, add to Object_rightclick
-        右click敵方卡牌
-        扣血(card.hp -= atk)
-        攻擊次數歸0 (card.atks = 0)
+    攻擊功能 完成
     AI出牌 未完成
     
 
     顯示手牌資料 完成
-    顯示地圖上卡牌資料 未完成 << To do, add to main.update
-        顯示icon卡在方格上(如晴天狗)
-        要bind做所在方格內既click evevnt
-        右click 顯示卡牌資料(cost, hp, etc)
-        
+    顯示地圖上卡牌資料 完成
+        
 To do:
 睇下啲code有乜位可以寫得簡潔啲
-
-
 ###
 
 同一牌MAX3
@@ -68,6 +60,7 @@ To do:
     戰術卡 加強能力/資源
     情報卡
 '''
+
 """
 Comments @ 21:15 HKT 19 Nov
 1.For the round actions, you can make them into more specific functions. For example:
@@ -100,7 +93,6 @@ class MainGame(Frame):
         self.parent.title('Python')
         self.pack(fill = BOTH, expand = 1)
         self.canvas = Canvas(self)
-
 
         self.ObjectID = 0
         
@@ -145,18 +137,28 @@ class MainGame(Frame):
         main.update()
         
     def update(self):
-        self.cost['text'] = '資源%s' % battle.red_cost
+        red_card = battle.red_card
+        red_handcard = battle.red_handcard
+        blue_card = battle.blue_card
         
+        self.canvas.delete('pics')
+        self.cost['text'] = '資源%s' % battle.red_cost
         for i in range(width * length):
             self.canvas.itemconfig(i + 1, fill = '#CDCDCD')
         self.canvas.itemconfig(self.ObjectID + 1, fill = '#DCDCDC')
   
-        red_card = battle.red_card
-        red_handcard = battle.red_handcard
-        blue_card = battle.blue_card
         for card in red_card:
             xy = self.Object_xy(card.pos) + 1
             self.canvas.itemconfig(xy, fill = '#FF7C80')
+            
+            x, y, z1, z2 = self.xy(card.pos)
+            self.canvas.create_image(x + 25, y + 25, image = battle.pics[card.pic], anchor = 'center', tag = 'pics')
+            self.canvas.tag_bind('pics', '<ButtonPress-1>', self.Object_click)
+            
+        for card in blue_card:
+            x, y, z1, z2 = self.xy(card.pos)
+            self.canvas.create_image(x + 25, y + 25, image = battle.pics[card.pic], anchor = 'center', tag = 'pics')            
+
 
         for button in self.buttons:
             button['text'] = '---'
@@ -213,8 +215,12 @@ class MainGame(Frame):
         return card_info
        
     def Object_click(self, event):
+        self.canvas.delete('pics')
         object_closest = event.widget.find_closest(event.x, event.y)
         self.ObjectID = object_closest[0] - 1
+        for card in battle.red_card:
+            x, y, z1, z2 = self.xy(card.pos) #only use x and y
+            self.canvas.create_image(x + 25, y + 25, image = battle.pics[card.pic], anchor = 'center', tag = 'pics')
         self.update()
 
     def Object_rightclick(self, event):
@@ -230,15 +236,13 @@ class MainGame(Frame):
                     if (x, y) in battle.pos((x1, y1)):
                         card.pos = x, y
                         card.moves -= 1
-		    else:
-			#Attacking
-			#finding the enemy card(s) that can be attacked at (x,y)
-			#Just to note, you can use a = [x for x in (some iterator) (criteria - optional)]
-			#to extract members from a iterator with some criteria
-			enemyCards = [c for c in battle.blue_card if c.pos == (x,y)]
-			#check if list is empty. Empty list evalutes to "False"
-			if enemyCards:
-				battle.attack(card,enemyCard[0])
+                for def_card in battle.blue_card:
+                    if def_card.pos == (x, y):
+                        if def_card.atks > 0:
+                            def_card.hp -= card.atk
+                            card.atks -= 1
+                        if def_card.hp <= 0:
+                            battle.blue_card.remove(def_card)
         self.update()
 
     def Object_pos(self, pos):
@@ -294,13 +298,13 @@ cards = [#card('卡名', '卡類', 費用, 攻擊,血量, 移動力, 攻擊次)
          card('晴天狗', 'dog', '28.gif', 1, 1, 2, 1, 1),
          card('流氓犬', 'dog', '28.gif', 2, 2, 4, 1, 1),
 
-         card('自走炮松溪型', 'spg', 'SPG.png', 4, 5, 2, 1, 1),
-         card('自走炮碧琴型', 'spg', 'SPG.png', 3, 3, 1, 1, 1),
+         card('自走炮松溪型', 'spg', 'SPG1.png', 4, 5, 2, 1, 1),
+         card('自走炮碧琴型', 'spg', 'SPG1.png', 3, 3, 1, 1, 1),
          
          card('驅逐坦克ZEN', 'TD', None, 6, 6, 2, 1, 1),
          
-         card('重坦克松溪型', 'tank', 'Tank1.png', 5, 4, 4, 1, 1),
-         card('重坦克碧琴型', 'tank', 'Tank1.png', 5, 4, 3, 1, 1),
+         card('重坦克松溪型', 'tank', 'p.png', 5, 4, 4, 1, 1),
+         card('重坦克碧琴型', 'tank', 'p.png', 5, 4, 3, 1, 1),
 
          card('中坦克甲型', 'tank', None, 3, 2, 3, 1, 1),
          card('中坦克乙型', 'tank', None, 3, 2, 3, 1, 1),]
@@ -326,16 +330,6 @@ class combat(object):
         self.blue_cost = 0
 
         self.pics = self.set_pics()
-        
-    def attack(self, atk_card, def_card):
-        atk_damage = atk_card.atk
-        def_card.hp -= atk_damage
-        if def_card.hp <= 0:
-            if def_card.side == 'red':
-                self.red_card.remove(def_card)
-            elif def_card.side == 'blue':
-                self.blue_card.remove(def_card)
-        main.update()
                          
     def dealt(self):
         while len(self.red_handcard) < 7 and len(self.deck_red) > 0:
