@@ -193,13 +193,13 @@ class MainGame(Frame):
     def cards_show(self, name):
         card = battle.card_find(name)
         card_info = None
-        
+            
         card_name = card.name
         card_type = card.card_type
         cost = card.cost
         atk = card.atk
         hp = card.hp
-        
+            
         if card_type == 'leader':
             card_type = '主師'
         elif card_type == 'tank':
@@ -210,7 +210,7 @@ class MainGame(Frame):
             card_type = '狗'
         elif card_type == 'support':
             card_type = '支援'
-        
+            
         card_info = '{%s} \n\n[%s]\nCost(%s)\nAtk(%s)\nHp(%s)' % (card_type, card_name, cost, atk, hp)
         return card_info
        
@@ -236,6 +236,7 @@ class MainGame(Frame):
                     if (x, y) in battle.pos((x1, y1)):
                         card.pos = x, y
                         card.moves -= 1
+                        self.ObjectID = self.RightClickID
                     else:
                         for enemyCard in battle.blue_card:
                             if enemyCard.pos == (x, y):
@@ -272,9 +273,10 @@ class card(object):
         self.atks = atks
 
 deck1 = ['冰','晴天狗', '晴天狗', '晴天狗','驅逐坦克ZEN',
-         '重坦克碧琴型', '重坦克碧琴型', '自走炮碧琴型', '自走炮碧琴型']
+         '重坦碧琴型', '重坦碧琴型', '自走炮碧琴型', '自走炮碧琴型',
+         '重坦松溪型', '重坦松溪型', '虎式', '中坦甲型', '中坦甲型']
 
-deck2 = ['大麻', '晴天狗', '晴天狗', '晴天狗', '晴天狗',
+deck2 = ['ZEN', '晴天狗', '晴天狗', '晴天狗', '晴天狗',
          '晴天狗', '晴天狗', '晴天狗', '晴天狗', '晴天狗',
          '晴天狗', '晴天狗', '晴天狗', '晴天狗', '晴天狗',
          '晴天狗', '晴天狗', '晴天狗', '晴天狗', '晴天狗',
@@ -284,27 +286,28 @@ deck2 = ['大麻', '晴天狗', '晴天狗', '晴天狗', '晴天狗',
 
 cards_type = ['leader', 'tank', 'TD', 'spg', 'dog']
 cards = [#card('卡名', '卡類', 費用, 攻擊,血量, 移動力, 攻擊次)
-         card('冰', 'leader', None, 1, 1, 1, None, None),
+         card('冰', 'leader', 'ice.gif', 1, 1, 1, None, None),
          card('大麻', 'leader', None, 1, 1, 1, None, None),
-         card('ZEN', 'leader', None, 1, 1, 1, None, None),
+         card('ZEN', 'leader', 'ZEN.gif', 1, 1, 1, None, None),
 
          card('補給兵', 'support', None, 2, 1, 3, None, None),
          card('油田', 'support', None, 3, 2, 3, None, None),
          card('雷達', 'support', None, 3, 2, 3, None, None),
 
-         card('晴天狗', 'dog', '28.gif', 1, 1, 2, 1, 1),
-         card('流氓犬', 'dog', '28.gif', 2, 2, 4, 1, 1),
+         card('晴天狗', 'dog', 'SunnyDog.gif', 1, 1, 2, 1, 1),
+         card('流氓犬', 'dog', 'SunnyDog.gif', 2, 2, 4, 1, 1),
 
          card('自走炮松溪型', 'spg', 'SPG1.png', 4, 5, 2, 1, 1),
          card('自走炮碧琴型', 'spg', 'SPG1.png', 3, 3, 1, 1, 1),
          
-         card('驅逐坦克ZEN', 'TD', None, 6, 6, 2, 1, 1),
+         card('驅逐坦克ZEN', 'TD', 'ZEN.gif', 6, 6, 2, 1, 1),
          
-         card('重坦克松溪型', 'tank', 'p.png', 5, 4, 4, 1, 1),
-         card('重坦克碧琴型', 'tank', 'p.png', 5, 4, 3, 1, 1),
+         card('重坦松溪型', 'tank', 'Tank1.png', 5, 4, 4, 1, 1),
+         card('重坦碧琴型', 'tank', 'BigCum.gif', 5, 4, 3, 1, 1),
+         card('虎式', 'tank', 'Tiger.png', 5, 4, 3, 1, 1),
 
-         card('中坦克甲型', 'tank', None, 3, 2, 3, 1, 1),
-         card('中坦克乙型', 'tank', None, 3, 2, 3, 1, 1),]
+         card('中坦甲型', 'tank', 'Tank1.png', 3, 2, 3, 1, 1),
+         card('中坦乙型', 'tank', 'Tank1.png', 3, 2, 3, 1, 1),]
 
 
 class combat(object):
