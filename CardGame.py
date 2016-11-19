@@ -149,13 +149,7 @@ class MainGame(Frame):
             for i, button in enumerate(self.buttons):
                 if i < len(red_handcard):
                     card = battle.card_find(red_handcard[i])
-                    if card.pic is not None:
-                        print(card.pic)
-                        button.config(image = battle.pics[card.pic], compound = 'top')
-                    else:
-                        button.config(image = self.pic_none, compound = 'top')                    
-                else:
-                    button.config(image = self.pic_none, compound = 'top')
+                    button.config(image = battle.pics[card.pic], compound = 'top')
                 
     def cards_show(self, name):
         card = battle.card_find(name)
@@ -389,7 +383,8 @@ class combat(object):
         self.dealt()
 
     def set_pics(self):
-        pics = {}
+        pic_none = PhotoImage(file = 'None.png')
+        pics = {None: pic_none}
         for card in cards:
             if card.pic:
                 pic = PhotoImage(file = card.pic)
