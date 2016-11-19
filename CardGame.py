@@ -236,13 +236,10 @@ class MainGame(Frame):
                     if (x, y) in battle.pos((x1, y1)):
                         card.pos = x, y
                         card.moves -= 1
-                for def_card in battle.blue_card:
-                    if def_card.pos == (x, y):
-                        if def_card.atks > 0:
-                            def_card.hp -= card.atk
-                            card.atks -= 1
-                        if def_card.hp <= 0:
-                            battle.blue_card.remove(def_card)
+                    else:
+                        for enemyCard in battle.blue_card:
+                            if enemyCard.pos == (x, y):
+                                battle.attack(card, enemyCard)
         self.update()
 
     def Object_pos(self, pos):
@@ -330,7 +327,17 @@ class combat(object):
         self.blue_cost = 0
 
         self.pics = self.set_pics()
-                         
+        
+    def attack(self, atk_card, def_card):
+        atk_damage = atk_card.atk
+        def_card.hp -= atk_damage
+        if def_card.hp <= 0:
+            if def_card.side == 'red':
+                self.red_card.remove(def_card)
+            elif def_card.side == 'blue':
+                self.blue_card.remove(def_card)
+        main.update()
+        
     def dealt(self):
         while len(self.red_handcard) < 7 and len(self.deck_red) > 0:
             card = self.deck_red[-1]
