@@ -1,6 +1,6 @@
 from tkinter import *
-import random
 import copy
+import random
 
 Game = 'CardGame'
 Version = '0.01'
@@ -9,7 +9,7 @@ Author = 'ChuShu'
 length , width = 7, 3
 
 '''
-進度表:
+
 
 考量點
     坦克&膠登人物可共用機制
@@ -17,34 +17,47 @@ length , width = 7, 3
       	    SPG(自走炮) = 遠程攻擊
      	    TD(驅逐坦克) = 狙擊手
     紅方為玩家 藍方為電腦 先完成紅方
-    連線對戰 需Python技術支援
-
+    連線對戰 需Python技術支援 <<< To do
+進度表:
+###
 基礎卡牌 未完成
     各種卡牌機制 未完成
         主師 未完成
-        
+            加資源
         坦克 未完成
             主力
         TD 未完成
-            直行攻擊       
+            直行攻擊 高攻      
         SPG 未完成
-            大射程 低血
+            大射程 低攻
         支援 未完成
         狗 亂入的:0)
-    卡牌圖片 未完成(0/3)
+        
+    卡牌圖片 未完成 < 圖片size最大為50x50
     牌組 未完成
     
 機制
     發配卡牌 完成
     移動功能 完成
     計cost 完成
-    攻擊功能 未完成
+    攻擊功能 未完成 <<< To do, add to Object_rightclick
+        右click敵方卡牌
+        扣血(card.hp -= atk)
+        攻擊次數歸0 (card.atks = 0)
     AI出牌 未完成
     
 
     顯示手牌資料 完成
-    顯示地圖上卡牌資料 未完成
+    顯示地圖上卡牌資料 未完成 << To do, add to main.update
+        顯示icon卡在方格上(如晴天狗)
+        要bind做所在方格內既click evevnt
+        右click 顯示卡牌資料(cost, hp, etc)
+        
+To do:
+睇下啲code有乜位可以寫得簡潔啲
+
 
+###
 
 同一牌MAX3
 地形X回合改變
@@ -226,7 +239,8 @@ class card(object):
         self.moves = moves
         self.atks = atks
 
-deck1 = ['冰','晴天狗', '晴天狗', '晴天狗','驅逐坦克ZEN', '重坦克碧琴型', '重坦克碧琴型', '自走炮碧琴型', '自走炮碧琴型']
+deck1 = ['冰','晴天狗', '晴天狗', '晴天狗','驅逐坦克ZEN',
+         '重坦克碧琴型', '重坦克碧琴型', '自走炮碧琴型', '自走炮碧琴型']
 
 deck2 = ['大麻', '晴天狗', '晴天狗', '晴天狗', '晴天狗',
          '晴天狗', '晴天狗', '晴天狗', '晴天狗', '晴天狗',
