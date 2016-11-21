@@ -152,12 +152,12 @@ class MainGame(Frame):
             self.canvas.itemconfig(xy, fill = '#FF7C80')
             
             x, y, z1, z2 = self.xy(card.pos)
-            self.canvas.create_image(x + 25, y + 25, image = battle.pics[card.pic], anchor = 'center', tag = 'pics')
+            self.canvas.create_image(x + 35, y + 35, image = battle.pics[card.pic], anchor = 'center', tag = 'pics')
             self.canvas.tag_bind('pics', '<ButtonPress-1>', self.Object_click)
             
         for card in blue_card:
             x, y, z1, z2 = self.xy(card.pos)
-            self.canvas.create_image(x + 25, y + 25, image = battle.pics[card.pic], anchor = 'center', tag = 'pics')            
+            self.canvas.create_image(x + 35, y + 35, image = battle.pics[card.pic], anchor = 'center', tag = 'pics')            
 
 
         for button in self.buttons:
@@ -231,13 +231,14 @@ class MainGame(Frame):
         x1, y1 = self.Object_pos(self.ObjectID)
 
         for card in battle.red_card:
+            print(battle.red_card)
             if card.pos == (x1, y1):
-                if card.moves > 0:
+                if card.moves > 0 and card.card_type != 'leader':
                     if (x, y) in battle.pos((x1, y1)):
                         card.pos = x, y
                         card.moves -= 1
                         self.ObjectID = self.RightClickID
-                    else:
+                if card.atks > 0:
                         for enemyCard in battle.blue_card:
                             if enemyCard.pos == (x, y):
                                 battle.attack(card, enemyCard)
@@ -255,10 +256,10 @@ class MainGame(Frame):
         
     def xy(self, xy):
         x, y = xy
-        x1 = x * 50 + 20
-        y1 = y * 50 + 20
-        x2 = x1 + 50
-        y2 = y1 + 50
+        x1 = x * 65 + 20
+        y1 = y * 65 + 20
+        x2 = x1 + 65
+        y2 = y1 + 65
         return [x1, y1, x2, y2]
         
 class card(object):
