@@ -31,7 +31,9 @@ length , width = 7, 3
         SPG 未完成
             大射程 低攻
         支援 未完成
-        狗 亂入的:0)
+            火箭炮
+        狗 亂入
+        戰術卡 未完成
         
     卡牌圖片 未完成 < 圖片size最大為50x50
     牌組 未完成
@@ -125,81 +127,62 @@ class MainGame(Frame):
             button.place(x = x1, y = 375)
             
     def set_card(self, i):
-        name = battle.card_find(battle.red_handcard[i]).name
+        name = player.hand[i].name
         pos = main.ObjectID 
-        side = 'red'
-
         xy = self.Object_pos(pos)
-        for card in battle.red_card:
-            if card.pos == xy:
-                return None
-        battle.set_card(name, xy, side, cost=True)
+        
+        player.set_card(player.hand[i], xy, cost=True)
         main.update()
         
     def update(self):
-        red_card = battle.red_card
-        red_handcard = battle.red_handcard
-        blue_card = battle.blue_card
-        
         self.canvas.delete('pics')
-        self.cost['text'] = '資源%s' % battle.red_cost
+        self.cost['text'] = '資源%s' % players[0].cost
         for i in range(width * length):
             self.canvas.itemconfig(i + 1, fill = '#CDCDCD')
         self.canvas.itemconfig(self.ObjectID + 1, fill = '#DCDCDC')
-  
-        for card in red_card:
+
+        for card in player.card:
             xy = self.Object_xy(card.pos) + 1
             self.canvas.itemconfig(xy, fill = '#FF7C80')
-            
+                
             x, y, z1, z2 = self.xy(card.pos)
-            self.canvas.create_image(x + 35, y + 35, image = battle.pics[card.pic], anchor = 'center', tag = 'pics')
+            self.canvas.create_image(x + 25, y + 25, image = pics[card.pic], anchor = 'center', tag = 'pics')
             self.canvas.tag_bind('pics', '<ButtonPress-1>', self.Object_click)
-            
-        for card in blue_card:
+
+        for card in AI.card:
+            xy = self.Object_xy(card.pos) + 1
+            self.canvas.itemconfig(xy, fill = '#4876FF')
             x, y, z1, z2 = self.xy(card.pos)
-            self.canvas.create_image(x + 35, y + 35, image = battle.pics[card.pic], anchor = 'center', tag = 'pics')            
-
-
+            self.canvas.create_image(x + 25, y + 25, image = pics[card.pic], anchor = 'center', tag = 'pics')
+            self.canvas.tag_bind('pics', '<ButtonPress-3>', self.Object_rightclick)
+            
         for button in self.buttons:
             button['text'] = '---'
             button['state'] = 'disable'
             
-        for card, button in zip(red_handcard, self.buttons):
-            if card is not None:
+        for card, button in zip(player.hand, self.buttons):
+            if card:
                 card_info = self.cards_show(card)
                 button['text'] = card_info
-                if battle.red_cost >= battle.card_find(card).cost:
+                if player.cost >= card.cost:
                     button['state'] = 'normal'
-                    
-        for card in blue_card:
-            xy = self.Object_xy(card.pos) + 1
-            self.canvas.itemconfig((xy), fill = '#4876FF')
 
-        for card in red_card:
+        for card in player.card:
             xy = self.ObjectID - self.ObjectID // 7 * 7, self.ObjectID // 7
             if card.pos == xy or xy not in [(0, 0), (1, 1), (0, 2)]:
                 for button in self.buttons:
                     button['state'] = 'disable'
 
-        self.pic_none = PhotoImage(file = 'None.png')
-        if red_handcard:
+        if player.hand:
             for i, button in enumerate(self.buttons):
-                if i < len(red_handcard):
-                    card = battle.card_find(red_handcard[i])
-                    button.config(image = battle.pics[card.pic], compound = 'top')               
+                if i < len(player.hand):
+                    card = player.hand[i]
+                    button.config(image = pics[card.pic], compound = 'top')               
                 else:
-                    button.config(image = self.pic_none, compound = 'top')
+                    button.config(image = pics[None], compound = 'top')
                 
-    def cards_show(self, name):
-        card = battle.card_find(name)
-        card_info = None
-            
-        card_name = card.name
+    def cards_show(self, card):
         card_type = card.card_type
-        cost = card.cost
-        atk = card.atk
-        hp = card.hp
-            
         if card_type == 'leader':
             card_type = '主師'
         elif card_type == 'tank':
@@ -211,37 +194,37 @@ class MainGame(Frame):
         elif card_type == 'support':
             card_type = '支援'
             
-        card_info = '{%s} \n\n[%s]\nCost(%s)\nAtk(%s)\nHp(%s)' % (card_type, card_name, cost, atk, hp)
+        card_info = '{%s} \n\n[%s]\nCost(%s)\nAtk(%s)\nHp(%s)' % (card_type, card.name, card.cost, card.atk, card.hp)
         return card_info
        
     def Object_click(self, event):
         self.canvas.delete('pics')
         object_closest = event.widget.find_closest(event.x, event.y)
         self.ObjectID = object_closest[0] - 1
-        for card in battle.red_card:
+        for card in player.card:
             x, y, z1, z2 = self.xy(card.pos) #only use x and y
-            self.canvas.create_image(x + 25, y + 25, image = battle.pics[card.pic], anchor = 'center', tag = 'pics')
+            self.canvas.create_image(x + 25, y + 25, image = pics[card.pic], anchor = 'center', tag = 'pics')
         self.update()
 
     def Object_rightclick(self, event):
+        self.canvas.delete('pics')
         object_closest = event.widget.find_closest(event.x, event.y)
         self.RightClickID = object_closest[0] - 1
 
         x, y = self.Object_pos(self.RightClickID)
         x1, y1 = self.Object_pos(self.ObjectID)
 
-        for card in battle.red_card:
-            print(battle.red_card)
+        for card in player.card:
             if card.pos == (x1, y1):
-                if card.moves > 0 and card.card_type != 'leader':
-                    if (x, y) in battle.pos((x1, y1)):
+                if card.moves > 0:
+                    if (x, y) in pos((x1, y1)):
                         card.pos = x, y
                         card.moves -= 1
                         self.ObjectID = self.RightClickID
-                if card.atks > 0:
-                        for enemyCard in battle.blue_card:
+                    else:
+                        for enemyCard in AI.card:
                             if enemyCard.pos == (x, y):
-                                battle.attack(card, enemyCard)
+                                player.attack(card, enemyCard, AI.card)
         self.update()
 
     def Object_pos(self, pos):
@@ -256,10 +239,10 @@ class MainGame(Frame):
         
     def xy(self, xy):
         x, y = xy
-        x1 = x * 65 + 20
-        y1 = y * 65 + 20
-        x2 = x1 + 65
-        y2 = y1 + 65
+        x1 = x * 50 + 20
+        y1 = y * 50 + 20
+        x2 = x1 + 50
+        y2 = y1 + 50
         return [x1, y1, x2, y2]
         
 class card(object):
@@ -313,144 +296,139 @@ cards = [#card('卡名', '卡類', 費用, 攻擊,血量, 移動力, 攻擊次)
 
 class combat(object):
     def __init__(self):
-        deck_1 = self.card_in_class(deck1)
-        deck_2 = self.card_in_class(deck2)
-        deck_1 = self.random_deck(deck1)
-        deck_2 = self.random_deck(deck2)
-        self.deck_red = list(deck_1)
-        self.deck_blue = list(deck_2)
-        
-        self.red_ap = 0
-        self.red_card = []
-        self.red_handcard = []
-        self.red_cost = 0
-        
-        self.blue_ap = 0
-        self.blue_card = []
-        self.blue_handcard = []
-        self.blue_cost = 0
-
         self.pics = self.set_pics()
+    
+
+
+    
+class Player(object):
+    def __init__(self, player_type, deck):
+        deck = card_in_class(deck)
+        deck = random_deck(deck)
+        self.deck = list(deck)
         
-    def attack(self, atk_card, def_card):
-        atk_damage = atk_card.atk
-        def_card.hp -= atk_damage
+        self.player_type = player_type
+        self.ap = 0
+        self.card = []
+        self.hand = []
+        self.cost = 0
+        
+    def attack(self, atk_card, def_card, def_deck):
+        damage = atk_card.atk
+        def_card.hp -= damage
         if def_card.hp <= 0:
-            if def_card.side == 'red':
-                self.red_card.remove(def_card)
-            elif def_card.side == 'blue':
-                self.blue_card.remove(def_card)
+            def_deck.remove(def_card)
         main.update()
         
     def dealt(self):
-        while len(self.red_handcard) < 7 and len(self.deck_red) > 0:
-            card = self.deck_red[-1]
-            self.red_handcard.append(card)
-            self.deck_red.remove(card)
-        main.update()
+        while len(self.hand) < 7 and len(self.deck) > 0:
+            card = self.deck[-1]
+            self.hand.append(card)
+            self.deck.remove(card)
         
-    def set_card(self, name, pos, side, cost=False, leader=False):
-        card_data = self.card_info(name, pos, side)
+    def set_card(self, card, pos, cost=False, leader=False):
         if leader:
-            if side == 'red':
-                self.deck_red.remove(name)
-                self.red_card.append(card_data)
-            elif side == 'blue':
-                self.deck_blue.remove(name)
-                self.blue_card.append(card_data)            
+            self.deck.remove(card)
+            card.pos = pos
+            self.card.append(card)           
         else:
-            if side == 'red':
-                self.red_handcard.remove(name)
-                self.red_card.append(card_data)
-                if cost:
-                    self.red_cost -= card_data.cost
-            elif side == 'blue':
-                self.blue_handcard.remove(name)
-                self.blue_card.append(card_data)
+            self.hand.remove(card)
+            card.pos = pos
+            self.card.append(card)
+            if cost:
+                self.cost -= card.cost
         main.update()
-    
-    def card_info(self, name, pos, side):
-        card = self.card_find(name)
-        card_data = copy.copy(card)
-        card_data.pos = pos
-        card_data.side = side
-        return card_data
-
-    def card_find(self, name):
-        for card in cards:
-            if card.name == name:
-                return card
-    
-    def random_deck(self, deck):
-        old_deck = list(deck)
-        new_deck = []
         
-        leader = old_deck[0]
-        old_deck.remove(leader)
-        
-        while len(old_deck) > 0:
-            r = random.choice(old_deck)
-            old_deck.remove(r)
-            new_deck.append(r)
-        new_deck.insert(0, leader)
-        return new_deck
-    
-    def pos(self, pos):
-        x, y = pos
-        e, s, w, n = (x + 1, y), (x, y + 1), (x - 1, y), (x, y - 1)
-        dirt = [e, s, w, n]
-        dirt_new = dirt
-        for j in range(2):
-            for i in dirt:
-                x, y = i
-                nearby = i
-                if x < 0 or y < 0 or y > 2:
-                    dirt_new.remove(nearby)
-                else:
-                    for card in self.red_card:
-                        if card.pos == nearby:
-                            dirt_new.remove(nearby)
-                    for card in self.blue_card:
-                        if card.pos == nearby:
-                            dirt_new.remove(nearby)
-        return dirt_new
-    
-    def card_in_class(self, deck):
-        cards = []
-        for name in deck:
-            found_card = self.card_find(name)
-            card = copy.copy(found_card)
-            cards.append(card)
-        return cards
-
     def turn_end(self):
-        for card in self.red_card:
+        for card in self.card:
             card.moves = 1
             card.atks = 1
-        for card in self.blue_card:
-            card.moves = 1
-            card.atks = 1
-        battle.red_cost += 5
-        battle.blue_cost += 5
+        self.cost += 5
         self.dealt()
-
-    def set_pics(self):
-        pic_none = PhotoImage(file = 'None.png')
-        pics = {None: pic_none}
-        for card in cards:
-            if card.pic:
-                pic = PhotoImage(file = card.pic)
-                pics[card.pic] = pic
-        return pics
+        main.update()
+        
+def pos(pos):
+    x, y = pos
+    e, s, w, n = (x + 1, y), (x, y + 1), (x - 1, y), (x, y - 1)
+    dirt = [e, s, w, n]
+    dirt_new = dirt
+    for j in range(2):
+        for i in dirt:
+            x, y = i
+            nearby = i
+            if x < 0 or y < 0 or y > 2:
+                dirt_new.remove(nearby)
+            else:
+                for p in players:
+                    for card in p.card:
+                        if card.pos == nearby:
+                            dirt_new.remove(nearby)
+    return dirt_new
     
+        
+def card_find(name):
+    for card in cards:
+        if card.name == name:
+            return card
+            
+def card_find_AtPos(x, y, playerCards):
+    card = None
+    cardList
+    
+def card_in_class(deck):
+    cards = []
+    for name in deck:
+        found_card = card_find(name)
+        card = copy.copy(found_card)
+        cards.append(card)
+    return cards
+
+def card_info(name, pos):
+    card = card_find(name)
+    card_data = copy.copy(card)
+    print(card_data,name)
+    card_data.pos = pos
+    return card_data
+            
+def random_deck(deck):
+    old_deck = list(deck)
+    new_deck = []
+        
+    leader = old_deck[0]
+    old_deck.remove(leader)
+        
+    while len(old_deck) > 0:
+        r = random.choice(old_deck)
+        old_deck.remove(r)
+        new_deck.append(r)
+    new_deck.insert(0, leader)
+    return new_deck
+
+def set_pics():
+    pic_none = PhotoImage(file = 'None.png')
+    pics = {None: pic_none}
+    for card in cards:
+        if card.pic:
+            pic = PhotoImage(file = card.pic)
+            pics[card.pic] = pic
+    return pics
+
+def start():
+    x = 0
+    for player in players:
+        player.dealt()
+        player.cost = 5
+
+        player.set_card(player.deck[0], (x, 1), leader=True)
+        x += 6
+        
 root = Tk()
 root.geometry('850x650+0+0')
 main = MainGame(root)
-battle = combat()
 
-battle.set_card(battle.deck_red[0], (0, 1), 'red', leader=True)
-battle.set_card(battle.deck_blue[0], (6, 1), 'blue', leader=True)
-battle.dealt()
-battle.red_cost = 5
-battle.blue_cost = 5
-main.turn_end['command'] = battle.turn_end
+player = Player('player', deck1)
+AI = Player('AI', deck2)
+players = [player, AI]
+pics = set_pics()
+main.turn_end['command'] = player.turn_end
+start()
